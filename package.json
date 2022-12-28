@@ -1,0 +1,22 @@
+{
+  "name": "genshinarchivesbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc --build",
+    "buildrun": "npm run build && npm run run",
+    "run": "cd build && node index.js"
+  },
+  "keywords": [],
+  "author": "Ten#0010",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/rest": "^1.5.0",
+    "axios": "^1.2.1",
+    "discord-api-types": "^0.37.24",
+    "discord-http-interactions": "^1.2.5",
+    "dotenv": "^16.0.3",
+    "enmap": "^5.9.5"
+  }
+}
