@@ -7,8 +7,8 @@ import {load} from "./cmd/CommandLoader";
 const client = new Client({
     token: process.env.DISCORD_TOKEN as string,
     publicKey: process.env.DISCORD_PUBLIC_KEY as string,
-    port: 13337,
-    endpoint: "/api/interactions"
+    port: parseInt(process.env.PORT as string),
+    endpoint: process.env.ENDPOINT as string
 });
 client.db = new Enmap({name: "database"});
 let commands
