@@ -45,5 +45,108 @@ function updateDB(){
         });
         console.log(`${characters.length} characters loaded.`);
         client.db.set("characters",characters,"names");
+    }).catch(e => console.log(e.message));
+}
+
+//This is used when I need to update the commands.
+//setCommands();
+
+function setCommands(){
+    client.registerCommands(process.env.DISCORD_ID as string,[
+        {
+            name: "wish",
+            description: "Calculate how many wishes you've used this banner.",
+            options: [
+                {
+                    type: 4,
+                    name: "page",
+                    description: "Page number that has a 5* (or the last page if none)",
+                    required: true
+                }, {
+                    type: 4,
+                    name: "row",
+                    description: "The position of the 5* (or last row if none)",
+                    required: true
+                },
+            ]
+        }, {
+            name: "character",
+            description: "See information regarding a character.",
+            options: [
+                {
+                    name: "summary",
+                    description: "See a summary on the requested character.",
+                    type: 1,
+                    options: [
+                        {
+                            name: "name",
+                            type: 3,
+                            description: "Character's name.",
+                            required: true,
+                            autocomplete: true
+                        }
+                    ]
+                }, {
+                    name: "constellations",
+                    description: "See the constellation(s) of a requested character.",
+                    type: 1,
+                    options: [
+                        {
+                            name: "name",
+                            type: 3,
+                            description: "Please select the activity from the list below.",
+                            required: true,
+                            autocomplete: true
+                        }, {
+                            name: "constellation",
+                            type: 3,
+                            description: "The constellation you wish to see.",
+                            required: true,
+                            autocomplete: true
+                        }
+                    ]
+                }, {
+                    name: "talents",
+                    description: "See the talent(s) of a requested character.",
+                    type: 1,
+                    options: [
+                        {
+                            name: "name",
+                            type: 3,
+                            description: "Please select the activity from the list below.",
+                            required: true,
+                            autocomplete: true
+                        }, {
+                            name: "talent",
+                            type: 3,
+                            description: "The talent you wish to see.",
+                            required: true,
+                            autocomplete: true
+                        }
+                    ]
+                }
+            ]
+        }, {
+            name: "say",
+            description: "Make Paimon say something.",
+            options: [
+                {
+                    name: "channel",
+                    type: 7,
+                    description: "Channel to send the message to.",
+                    required: true
+                }, {
+                    name: "message",
+                    type: 3,
+                    description: "Message to send.",
+                    required: true
+                }
+            ]
+        }
+    ]).then(x => {
+        console.log("Command set!");
+        console.log(x);
+    }).catch(e => {
+        console.log(e);
     });
 }
