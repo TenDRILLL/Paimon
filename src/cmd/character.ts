@@ -7,8 +7,8 @@ export default class Character extends Command {
         super("character");
     }
 
-    acRun(interaction) {
-        const command = interaction.data.options[interaction.data.options.length-1];
+    async acRun(interaction){
+        const command = interaction.data.options[0].options[interaction.data.options[0].options.length-1];
         let choices;
         switch(command.name){
             case "name":
@@ -23,38 +23,35 @@ export default class Character extends Command {
                     }
                 });
                 break;
-            case "information":
-                choices = [
-                    {name: "Summary", value: "summary"},
-                    {name: "Constellations", value: "c"},
-                    {name: "Constellation-1", value: "c-1"},
-                    {name: "Constellation-2", value: "c-2"},
-                    {name: "Constellation-3", value: "c-3"},
-                    {name: "Constellation-4", value: "c-4"},
-                    {name: "Constellation-5", value: "c-5"},
-                    {name: "Constellation-6", value: "c-6"}
-                ];
+            case "constellation":
+                choices = [{name: "All", value: "all"},...await this.getAC(false, interaction.data.options[0].options[0].value)];
+                break;
+            case "talent":
+                choices = [{name: "All", value: "all"},...await this.getAC(true, interaction.data.options[0].options[0].value)];
                 break;
         }
         interaction.autocomplete(choices);
     }
 
     async cmdRun(interaction){
-        const options = interaction.data.options;
-        const name = options[0].value;
-        const info = options[1].value;
+        const options = interaction.data.options[0];
+        const name = options.options[0].value;
+        const param = options.options[1]?.value;
         await interaction.defer();
         axios.get(`https://api.genshin.dev/characters/${name}`,{headers: { "Accept-Encoding": "gzip,deflate,compress" }}).then(d => {
             if(d.status !== 200 || d.data.length === 0){
                 return interaction.reply({content: "Getting character data failed, let Ten know of this.", ephemeral: true});
             }
             let embed;
-            switch(info.split("-")[0]){
+            switch(options.name){
                 case "summary":
                     embed = summaryEmbed(d.data);
                     break;
-                case "c":
-                    embed = constellationEmbed(d.data,info);
+                case "constellations":
+                    embed = constellationEmbed(d.data,param);
+                    break;
+                case "talents":
+                    embed = talentEmbed(d.data,param);
                     break;
                 default:
                     embed = new Embed().setDescription("Constructing the embed failed, let Ten know if this.");
@@ -98,15 +95,16 @@ export default class Character extends Command {
                 ]);
         }
 
-        function constellationEmbed(data,info){
+        function constellationEmbed(data,param){
             let fields = data.constellations.map(c => {
                 return {
                     name: `${c.name} - ${c.unlock}`,
-                    value: c.description, inline: true
+                    value: c.description,
+                    inline: true
                 };
             });
-            if(info.split("-").length === 2){
-                fields = [fields[parseInt(info.split("-")[1])-1]];
+            if(param !== "all"){
+                fields = [fields[parseInt(param)]];
             }
             return new Embed()
                 .setTitle(`${data.name} - Constellations`)
@@ -115,5 +113,52 @@ export default class Character extends Command {
                 .setColor(visionColor[data.vision.toLowerCase()])
                 .setFields(fields);
         }
+
+        function talentEmbed(data,param){
+            let fields = [
+                ...data.skillTalents.map(x => {return {
+                    name: x.name,
+                    value: `Unlocked: ${x.unlock}
+                    
+${x.description}`,
+                    inline: true
+                }}),
+                ...data.passiveTalents.map(x => {return {
+                    name: x.name,
+                    value: `Unlocked: ${x.unlock}
+                    
+${x.description}`,
+                    inline: true
+                }})
+            ];
+            if(param !== "all"){
+                fields = [fields[parseInt(param)]];
+            }
+            return new Embed()
+                .setTitle(`${data.name} - Talents`)
+                .setThumbnail(name.startsWith("traveler") ? `https://api.genshin.dev/characters/${name}/portrait` : `https://api.genshin.dev/characters/${name}/gacha-splash`)
+                .setColor(visionColor[data.vision.toLowerCase()])
+                .setFields(fields);
+        }
+    }
+
+    getAC(val,name): Promise<{name: string, value: string}[]>{
+        return new Promise((res,rej)=>{
+            axios.get(`https://api.genshin.dev/characters/${name}`,{headers: { "Accept-Encoding": "gzip,deflate,compress" }}).then(d => {
+                if(d.status !== 200 || d.data.length === 0){
+                    return rej("Invalid response.");
+                }
+                const talents: {name: string, value: string}[] = [];
+                d.data.skillTalents.forEach(x => {
+                    talents.push({name: x.name, value: `${talents.length - 1}`});
+                });
+                d.data.passiveTalents.forEach(x => {
+                    talents.push({name: x.name, value: `${talents.length - 1}`});
+                });
+                res(val ? talents : d.data.constellations.map(x => {return {name: `${x.name} - ${x.level}`, value: `${parseInt(x.level)-1}`}}));
+            }).catch(e => {
+                console.log(e.message);
+            });
+        });
     }
 }
