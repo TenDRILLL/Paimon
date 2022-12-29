@@ -109,7 +109,7 @@ export default class Character extends Command {
             return new Embed()
                 .setTitle(`${data.name} - Constellations`)
                 .setDescription(`Star constellation: ${data.constellation}`)
-                .setThumbnail(name.startsWith("traveler") ? `https://api.genshin.dev/characters/${name}/portrait` : `https://api.genshin.dev/characters/${name}/gacha-splash`)
+                .setThumbnail(name.startsWith("traveler") ? `https://api.genshin.dev/characters/${name}/portrait` : param === "all" ? `https://api.genshin.dev/characters/${name}/constellation` : `https://api.genshin.dev/characters/${name}/constellation-${parseInt(param)+1}`)
                 .setColor(visionColor[data.vision.toLowerCase()])
                 .setFields(fields);
         }
@@ -118,16 +118,18 @@ export default class Character extends Command {
             let fields = [
                 ...data.skillTalents.map(x => {return {
                     name: x.name,
-                    value: `Unlocked: ${x.unlock}
+                    value: `${x.unlock.startsWith("Unlocked ") ? x.unlock : ""}
                     
-${x.description}`,
+${x.description}
+`,
                     inline: true
                 }}),
                 ...data.passiveTalents.map(x => {return {
                     name: x.name,
-                    value: `Unlocked: ${x.unlock}
+                    value: `${x.unlock.startsWith("Unlocked ") ? x.unlock : ""}
                     
-${x.description}`,
+${x.description}
+`,
                     inline: true
                 }})
             ];
